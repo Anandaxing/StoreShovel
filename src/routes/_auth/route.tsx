@@ -52,8 +52,8 @@ function AuthenticationLayout() {
               className="h-auto w-[200px] lg:w-[250px]"
             />
           </div>
+          <Outlet />
         </section>
-        <Outlet />
       </div>
     </>
   )
