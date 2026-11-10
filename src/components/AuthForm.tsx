@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
+import { createAccount } from "#/lib/actions/user.action"
 
 // const formSchema = z.object({
 //   fullName: z
@@ -50,6 +51,7 @@ const authFormSchema = (formType: FormType) => {
 export default function AuthForm({ type }: { type: FormType }) {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+  const [accountId, setAccountId] = useState(null)
   const formSchema = authFormSchema(type)
   
   const form = useForm({
@@ -60,21 +62,26 @@ export default function AuthForm({ type }: { type: FormType }) {
     validators: {
       onSubmit: formSchema,
     },
-    onSubmit: async ({ value }) => {
-      toast("You submitted the following values:", {
-        description: (
-          <pre className="mt-2 w-[320px] overflow-x-auto rounded-md bg-code p-4 text-code-foreground">
-            <code>{JSON.stringify(value, null, 2)}</code>
-          </pre>
-        ),
-        position: "bottom-right",
-        classNames: {
-          content: "flex flex-col gap-2",
-        },
-        style: {
-          "--border-radius": "calc(var(--radius)  + 4px)",
-        } as React.CSSProperties,
-      })
+    onSubmit: async ({value}) => {
+      setIsLoading(true)
+      setErrorMessage("")
+        
+      try {      
+        const user = await createAccount({
+          data: {          
+            fullName: value.fullName || "",
+            email: value.email
+          }
+        })
+      } catch (error) {
+        setErrorMessage('Failed to create an account, please try again.')
+        console.error(error)
+      } finally {
+        setIsLoading(false)
+      }
+      
+
+      setAccountId(user.accountId)
     },
   })
   return (

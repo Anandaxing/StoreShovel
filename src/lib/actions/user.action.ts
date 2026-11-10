@@ -2,6 +2,7 @@ import { createAdminClient } from "../appwrite";
 import { appwriteConfig } from "../appwrite/config";
 import { Query, ID } from "node-appwrite";
 import { parseStringify } from "../utils";
+import { createServerFn } from "@tanstack/react-start";
 
 type accountInterface = {
   fullName: string,
@@ -35,7 +36,11 @@ const sendEmailOTP = async ({ email }: { email: string }) => {
   }
 }
 
-export const createAccount = async ({ fullName, email }: accountInterface) => {
+export const createAccount = createServerFn()
+  .validator(
+    (data: accountInterface) => data
+  ).handler(async ({ data }) => {
+  const { fullName, email } = data;
   const existingUser = await getUserByEmail(email)
   const accountId = await sendEmailOTP({ email })
   if (!accountId) throw new Error("Failed to send an OTP")
@@ -49,10 +54,10 @@ export const createAccount = async ({ fullName, email }: accountInterface) => {
         fullName,
         email,
         avatar: 'https://dentistry.co.uk/app/uploads/2025/08/AdobeStock_805282248-scaled.jpeg',
-        accountId
+        account_id: accountId
       }
     )
   }
 
   return parseStringify({ accountId })
-}
+})
