@@ -187,6 +187,7 @@ export default function AuthForm({ type }: { type: FormType }) {
           </a>
         </div>
       </form>
+      {accountId && (<OTPModal email={form.getFieldValue("email")} accountId={acco} /> )}
     </>
   )
 }
