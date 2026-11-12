@@ -26,16 +26,17 @@ const getUserByEmail = async (email: string) => {
   return result.total > 0 ? result.documents[0] : null
 }
 
-const sendEmailOTP = async ({ email }: { email: string }) => {
-  const { account } = await createAdminClient()
-
-  try {
-    const session = await account.createEmailToken(ID.unique(), email)
-    return session.userId
-  } catch (error) {
-    handleError(error, "Failed to send email OTP")
-  }
-}
+export const sendEmailOTP = createServerFn()
+  .validator((email: string) => email).handler(async ({ data }) => {
+    const { account } = await createAdminClient()
+  
+    try {
+      const session = await account.createEmailToken(ID.unique(), data)
+      return session.userId
+    } catch (error) {
+      handleError(error, "Failed to send email OTP")
+    }
+  })
 
 export const createAccount = createServerFn()
   .validator(
@@ -43,7 +44,7 @@ export const createAccount = createServerFn()
   ).handler(async ({ data }) => {
   const { fullName, email } = data;
   const existingUser = await getUserByEmail(email)
-  const accountId = await sendEmailOTP({ email })
+    const accountId = await sendEmailOTP({ data: email })
   if (!accountId) throw new Error("Failed to send an OTP")
   if (!existingUser) {
     const { databases } = await createAdminClient()
