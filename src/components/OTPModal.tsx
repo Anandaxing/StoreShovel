@@ -23,6 +23,7 @@ import React from "react"
 import Loader from "./ui/loader"
 import { verifySecret } from "#/lib/actions/user.action"
 import { useRouter } from "@tanstack/react-router"
+import { sendEmailOTP } from "#/lib/actions/user.action"
 
 const OTPModal = ({ email, accountId }: { email: string, accountId: string }) => {
   const router = useRouter()
@@ -51,13 +52,13 @@ const OTPModal = ({ email, accountId }: { email: string, accountId: string }) =>
   }
   
   const handleResendOTP = async () => {
-    
+    await sendEmailOTP({ data: email })
   }
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <form onSubmit={handleSubmit}>
-          <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-sm">
+          <form onSubmit={handleSubmit}>
             <DialogHeader className="flex justify-center relative">
               <DialogTitle className="h2 text-center">Enter your OTP</DialogTitle>
               <DialogDescription className="subtitle-2 text-center text-gray-500">
@@ -65,7 +66,7 @@ const OTPModal = ({ email, accountId }: { email: string, accountId: string }) =>
               </DialogDescription>
             </DialogHeader>
             <FieldGroup className="flex w-full justify-center items-center">
-              <InputOTP maxLength={6} value={ password } >
+              <InputOTP maxLength={6} value={password} onChange={setPassword}>
                 <InputOTPGroup>
                   <InputOTPSlot index={0} className="text-lg" />
                   <InputOTPSlot index={1} className="text-lg" />
@@ -90,8 +91,8 @@ const OTPModal = ({ email, accountId }: { email: string, accountId: string }) =>
                 </button>
               </div>
             </DialogFooter>
-          </DialogContent>
-        </form>
+          </form>
+        </DialogContent>
       </Dialog>
     </>
   )
