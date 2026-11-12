@@ -3,6 +3,7 @@ import { appwriteConfig } from "../appwrite/config";
 import { Query, ID } from "node-appwrite";
 import { parseStringify } from "../utils";
 import { createServerFn } from "@tanstack/react-start";
+import { setCookie } from "@tanstack/react-start/server";
 
 type accountInterface = {
   fullName: string,
@@ -60,4 +61,28 @@ export const createAccount = createServerFn()
   }
 
   return parseStringify({ accountId })
-})
+  })
+
+export const verifySecret = createServerFn().validator(
+  (data: {
+    accountId: string,
+    password: string
+  }) => data).handler(async ({ data }) => {
+    const { accountId, password } = data
+    try {
+      const { account } = await createAdminClient()
+      const session = await account.createSession(accountId, password)
+
+      setCookie("appwrite-session", session.secret, {
+        httpOnly: true,
+        path: "/",
+        sameSite: "strict",
+        secure: true,
+      })
+
+      return parseStringify({sessionId: session.$id})
+      
+    } catch (error) {
+      handleError(error, "Failed to verify OTP")
+    } 
+  })
