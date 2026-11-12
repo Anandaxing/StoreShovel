@@ -3,6 +3,7 @@ import { appwriteConfig } from "../appwrite/config";
 import { Query, ID } from "node-appwrite";
 import { parseStringify } from "../utils";
 import { createServerFn } from "@tanstack/react-start";
+import { setCookie } from "@tanstack/react-start/server";
 
 type accountInterface = {
   fullName: string,
@@ -25,16 +26,17 @@ const getUserByEmail = async (email: string) => {
   return result.total > 0 ? result.documents[0] : null
 }
 
-const sendEmailOTP = async ({ email }: { email: string }) => {
-  const { account } = await createAdminClient()
-
-  try {
-    const session = await account.createEmailToken(ID.unique(), email)
-    return session.userId
-  } catch (error) {
-    handleError(error, "Failed to send email OTP")
-  }
-}
+export const sendEmailOTP = createServerFn()
+  .validator((email: string) => email).handler(async ({ data }) => {
+    const { account } = await createAdminClient()
+  
+    try {
+      const session = await account.createEmailToken(ID.unique(), data)
+      return session.userId
+    } catch (error) {
+      handleError(error, "Failed to send email OTP")
+    }
+  })
 
 export const createAccount = createServerFn()
   .validator(
@@ -42,7 +44,7 @@ export const createAccount = createServerFn()
   ).handler(async ({ data }) => {
   const { fullName, email } = data;
   const existingUser = await getUserByEmail(email)
-  const accountId = await sendEmailOTP({ email })
+    const accountId = await sendEmailOTP({ data: email })
   if (!accountId) throw new Error("Failed to send an OTP")
   if (!existingUser) {
     const { databases } = await createAdminClient()
@@ -60,4 +62,28 @@ export const createAccount = createServerFn()
   }
 
   return parseStringify({ accountId })
-})
+  })
+
+export const verifySecret = createServerFn().validator(
+  (data: {
+    accountId: string,
+    password: string
+  }) => data).handler(async ({ data }) => {
+    const { accountId, password } = data
+    try {
+      const { account } = await createAdminClient()
+      const session = await account.createSession(accountId, password)
+
+      setCookie("appwrite-session", session.secret, {
+        httpOnly: true,
+        path: "/",
+        sameSite: "strict",
+        secure: true,
+      })
+
+      return parseStringify({sessionId: session.$id})
+      
+    } catch (error) {
+      handleError(error, "Failed to verify OTP")
+    } 
+  })
