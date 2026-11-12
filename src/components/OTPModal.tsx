@@ -21,8 +21,11 @@ import {
 import { useState } from "react"
 import React from "react"
 import Loader from "./ui/loader"
+import { verifySecret } from "#/lib/actions/user.action"
+import { useRouter } from "@tanstack/react-router"
 
-const OTPModal = ({email, accountId}: {email: string, accountId: string}) => {
+const OTPModal = ({ email, accountId }: { email: string, accountId: string }) => {
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(true)
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -33,6 +36,12 @@ const OTPModal = ({email, accountId}: {email: string, accountId: string}) => {
 
     try {
       // Call API to verify the OTP
+      const sessionId = await verifySecret({
+        data: { accountId, password }
+      })
+
+      if (sessionId) router.navigate({ to: "/" })
+      
     } catch (error) {
       console.error(error)
       console.log("Failed to verify OTP")
