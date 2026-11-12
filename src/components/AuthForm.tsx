@@ -1,5 +1,4 @@
 import { useForm } from "@tanstack/react-form"
-import { toast } from "sonner"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,6 +10,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { createAccount } from "#/lib/actions/user.action"
+import OTPModal from "./OTPModal"
+import Loader from "./ui/loader"
 
 // const formSchema = z.object({
 //   fullName: z
@@ -168,9 +169,7 @@ export default function AuthForm({ type }: { type: FormType }) {
         <Button type="submit" className="form-submit-button" disabled={isLoading}>
           {type == 'sign-in' ? "Sign In" : "Sign Up"}
           {isLoading && (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle fill="#FFFFFF" stroke="#FFFFFF" stroke-width="16" r="15" cx="40" cy="65"><animate attributeName="cy" calcMode="spline" dur="1.3" values="65;135;65;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.4"></animate></circle><circle fill="#FFFFFF" stroke="#FFFFFF" stroke-width="16" r="15" cx="100" cy="65"><animate attributeName="cy" calcMode="spline" dur="1.3" values="65;135;65;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.2"></animate></circle><circle fill="#FFFFFF" stroke="#FFFFFF" stroke-width="16" r="15" cx="160" cy="65"><animate attributeName="cy" calcMode="spline" dur="1.3" values="65;135;65;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="0"></animate></circle></svg>
-            </>
+            <Loader />
           )}
         </Button>
 
@@ -187,7 +186,7 @@ export default function AuthForm({ type }: { type: FormType }) {
           </a>
         </div>
       </form>
-      {accountId && (<OTPModal email={form.getFieldValue("email")} accountId={acco} /> )}
+      {accountId || true && (<OTPModal email={form.getFieldValue("email")} accountId={accountId} /> )}
     </>
   )
 }
